@@ -1,0 +1,75 @@
+ data : lo_message_container type ref to /iwbep/if_message_container, 
+
+           ls_matbasicdata      type zcl_ztrupen_odata_matm_mpc=>ts_materialbasicdata, 
+
+           ls_bapimathead       type bapimathead, 
+
+           ls_bapimara          type bapi_mara, 
+
+           ls_bapimarax         type BAPI_MARAx, 
+
+           lt_makt              type standard table of bapi_makt, 
+
+           ls_makt              type bapi_makt, 
+
+           ls_return            type bapiret2, 
+
+           lv_matnr             type matnr. 
+
+    read table it_key_tab into data(ls_key) with key name = 'Matnr'. 
+
+    if sy-subrc eq 0. 
+
+      ls_bapimathead-basic_view = abap_true. 
+
+      ls_bapimathead-material = ls_key-value. 
+
+      ls_bapimara-del_flag = abap_true. 
+
+      ls_bapimarax-del_flag = abap_true. 
+
+      call function 'BAPI_MATERIAL_SAVEDATA' 
+
+        exporting 
+
+          headdata    = ls_bapimathead 
+
+          clientdata  = ls_bapimara 
+
+          clientdatax = ls_bapimarax 
+
+        importing 
+
+          return      = ls_return. 
+
+      if ls_return-type = 'E' or ls_return-type = 'A' or ls_return-type = 'X'. 
+
+        lo_message_container = me->mo_context->get_message_container( ). 
+
+      "only to display message text. 
+
+      call method lo_message_container->add_message_text_only 
+
+        exporting 
+
+          iv_msg_type               = 'E' 
+
+          iv_msg_text               = 'Material Deletion failed' 
+
+          iv_add_to_response_header = abap_true. 
+
+    else. 
+
+        call function 'BAPI_TRANSACTION_COMMIT' 
+
+          exporting 
+
+            wait   = abap_true 
+
+          importing 
+
+            return = ls_return. 
+
+      endif. 
+
+    endif. 

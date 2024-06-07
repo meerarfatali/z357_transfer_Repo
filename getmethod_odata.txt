@@ -1,0 +1,51 @@
+data   :lo_message_container type ref to /iwbep/if_message_container, 
+
+            ls_matbasicdata      type zcl_ztrupen_odata_matm_mpc=>ts_materialbasicdata. 
+
+    read table it_key_tab into data(ls_key) with key name = 'Matnr'. 
+
+    if sy-subrc eq 0. 
+
+    Ls_matbasicdata-mandt = sy-mandt. 
+
+      select single matnr mbrsh mtart  matkl meins from mara 
+
+             into corresponding fields of ls_matbasicdata where 
+
+             matnr = ls_key-value. 
+
+      if sy-subrc eq 0. 
+
+        select single maktx from makt into ls_matbasicdata-maktx 
+
+           where matnr = ls_matbasicdata-matnr and spras = 'E'. 
+
+        if sy-subrc eq 0. 
+
+ 
+
+          er_entity = ls_matbasicdata. 
+
+        endif. 
+
+      endif. 
+
+    else. 
+
+      lo_message_container = me->mo_context->get_message_container( ). 
+
+      "only to display message text. 
+
+      call method lo_message_container->add_message_text_only 
+
+        exporting 
+
+          iv_msg_type               = 'E' 
+
+          iv_msg_text               = 'Material Does Not Exist' 
+
+          iv_add_to_response_header = abap_true. 
+
+    endif. 
+
+  endmethod. 
